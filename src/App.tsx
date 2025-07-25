@@ -6,7 +6,17 @@ import { TodoList } from './components/TodoList';
 import { User } from './types/User';
 
 export const App = () => {
-  const [todos, setTodos] = useState(todosFromServer);
+  const enrichedTodos = todosFromServer.map(todo => ({
+    ...todo,
+    user: usersFromServer.find(user => user.id === todo.userId) || {
+      id: 0,
+      name: 'Unknown',
+      username: '',
+      email: '',
+    },
+  }));
+
+  const [todos, setTodos] = useState(enrichedTodos);
   const [title, setTitle] = useState('');
   const [selected, setSelected] = useState(0);
   const [titleError, setTitleError] = useState(false);
@@ -25,17 +35,7 @@ export const App = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const newId = Math.max(...todos.map(todo => todo.id), 0) + 1;
-    const userObj = usersFromServer.find(user => user.id === selected);
-
     let errors = 0;
-    const user = {
-      id: newId,
-      title,
-      userId: selected,
-      completed: false,
-      user: userObj,
-    };
 
     if (!title) {
       setTitleError(true);
@@ -51,7 +51,22 @@ export const App = () => {
       return;
     }
 
-    setTodos([...todos, user]);
+    const newId = Math.max(...todos.map(todo => todo.id), 0) + 1;
+    const selectedUser = usersFromServer.find(user => user.id === selected);
+
+    if (!selectedUser) {
+      return;
+    }
+
+    const newTodo = {
+      id: newId,
+      title,
+      userId: selectedUser.id,
+      completed: false,
+      user: selectedUser,
+    };
+
+    setTodos([...todos, newTodo]);
     setTitle('');
     setSelected(0);
     setSelectError(false);

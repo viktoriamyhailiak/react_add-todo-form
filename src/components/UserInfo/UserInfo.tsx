@@ -1,5 +1,3 @@
-import usersFromServer from '../../api/users';
-import { User } from '../../types/User';
 import { Todo } from '../../types/Todo';
 
 interface Props {
@@ -7,7 +5,11 @@ interface Props {
 }
 
 export const UserInfo: React.FC<Props> = ({ todo }) => {
-  const user = usersFromServer.find((x: User) => x.id === todo.userId) as User;
+  const user = todo.user;
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <a className="UserInfo" href={`mailto:${user.email}`}>
